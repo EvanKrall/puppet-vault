@@ -24,7 +24,7 @@ This module handles installing the vault binary, writing a config file for serve
 It does not:
 
  - [initialize](https://vaultproject.io/intro/getting-started/deploy.html) the vault
- - [unseal] the vault on startup
+ - [unseal](https://www.vaultproject.io/docs/concepts/seal.html) the vault on startup
  - Provide a way to get secrets from Vault within puppet. For that, look at [puppet-vaultize-file](https://github.com/EvanKrall/puppet-vaultize-file)
 
 ##Development
