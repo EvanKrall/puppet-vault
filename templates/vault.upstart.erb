@@ -1,0 +1,32 @@
+# Vault Server (Upstart unit)
+description "Vault Server"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [06]
+
+env VAULT=<%= scope.lookupvar('vault::bin_dir') %>/vault
+env CONFIG=<%= scope.lookupvar('vault::config_dir') %>
+env USER=<%= scope.lookupvar('vault::user') %>
+env GROUP=<%= scope.lookupvar('vault::group') %>
+env DEFAULTS=/etc/default/vault
+env RUNDIR=/var/run/vault
+env PID_FILE=/var/run/vault/vault.pid
+
+pre-start script
+  [ -e $DEFAULTS ] && . $DEFAULTS
+
+  mkdir -p $RUNDIR           || true
+  chmod 0750 $RUNDIR         || true
+  chown $USER:$GROUP $RUNDIR || true
+end script
+
+script
+    # read settings like GOMAXPROCS from "/etc/default/vault", if available.
+    [ -e $DEFAULTS ] && . $DEFAULTS
+
+    export GOMAXPROCS=${GOMAXPROCS:-2}
+    exec start-stop-daemon -u $USER -g $GROUP -p $PID_FILE -x $VAULT -S -- server -config $CONFIG <%= scope.lookupvar('vault::extra_options') %>
+end script
+
+respawn
+respawn limit 10 10
+kill timeout 10

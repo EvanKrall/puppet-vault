@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+#       /etc/rc.d/init.d/vault
+#
+#       Daemonize the vault server.
+#
+# chkconfig:   2345 95 95
+# description: A tool for managing secrets.
+# processname: vault
+# pidfile: /var/run/vault/pidfile
+
+# Source function library.
+. /etc/init.d/functions
+
+VAULT=<%= scope.lookupvar('vault::bin_dir') %>/vault
+CONFIG=<%= scope.lookupvar('vault::config_dir') %>
+PID_FILE=/var/run/vault/vault.pid
+LOG_FILE=/var/log/vault
+
+[ -e /etc/sysconfig/vault ] && . /etc/sysconfig/vault
+
+export GOMAXPROCS=${GOMAXPROCS:-2}
+
+#
+# Create the /var/run/vault directory, which can live on a tmpfs
+# filesystem and be destroyed between reboots.
+#
+mkrundir() {
+        [ ! -d /var/run/vault ] && mkdir -p /var/run/vault
+        chown <%= scope.lookupvar('vault::user') %> /var/run/vault
+}
+
+#
+# Create a PID file if it doesn't already exist, for clean upgrades
+# from previous init-script controlled daemons.
+#
+KILLPROC_OPT="-p ${PID_FILE}"
+mkpidfile() {
+        # Create PID file if it didn't exist
+        mkrundir
+        [ ! -f $PID_FILE ] && pidofproc $VAULT > $PID_FILE
+        chown <%= scope.lookupvar('vault::user') %> /var/run/vault
+        if [ $? -ne 0 ] ; then
+            rm $PID_FILE
+            KILLPROC_OPT=""
+        fi
+}
+
+start() {
+        echo -n "Starting vault: "
+        mkrundir
+        [ -f $PID_FILE ] && rm $PID_FILE
+        daemon --user=<%= scope.lookupvar('vault::user') %> \
+            --pidfile="$PID_FILE" \
+            "$VAULT" server -config "$CONFIG" <%= scope.lookupvar('vault::extra_options') %> >> "$LOG_FILE" &
+        retcode=$?
+        touch /var/lock/subsys/vault
+        return $retcode
+}
+
+stop() {
+        echo -n "Shutting down vault: "
+        mkpidfile
+        killproc $KILLPROC_OPT $VAULT -9
+
+        retcode=$?
+        rm -f /var/lock/subsys/vault $PID_FILE
+        return $retcode
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        "$VAULT" info
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    reload)
+        mkpidfile
+        killproc $KILLPROC_OPT $VAULT -HUP
+        ;;
+    condrestart)
+        [ -f /var/lock/subsys/vault ] && restart || :
+        ;;
+    *)
+        echo "Usage: vault {start|stop|status|reload|restart}"
+        exit 1
+        ;;
+esac
+exit $?
