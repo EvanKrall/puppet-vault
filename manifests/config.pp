@@ -84,7 +84,7 @@ class vault::config(
     purge   => $purge,
     recurse => $purge,
   } ->
-  file { 'config.json':
+  file { 'vault config.json':
     path    => "${vault::config_dir}/config.json",
     content => vault_sorted_json($config_hash),
   }
