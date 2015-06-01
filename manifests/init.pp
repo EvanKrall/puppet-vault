@@ -39,7 +39,7 @@ class vault (
   $version           = $vault::params::version,
   $install_method    = $vault::params::install_method,
   $os                = $vault::params::os,
-  $download_url      = "https://dl.bintray.com/mitchellh/vault/${version}_${os}_${arch}.zip",
+  $download_url      = "https://dl.bintray.com/mitchellh/vault/vault_${version}_${os}_${arch}.zip",
   $package_name      = $vault::params::package_name,
   $package_ensure    = $vault::params::package_ensure,
   $config_dir        = '/etc/vault',
