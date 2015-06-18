@@ -12,14 +12,15 @@
 # Source function library.
 . /etc/init.d/functions
 
-VAULT=<%= scope.lookupvar('vault::bin_dir') %>/vault
-CONFIG=<%= scope.lookupvar('vault::config_dir') %>
+<% require 'shellwords' %>
+VAULT=<%= scope.lookupvar('vault::bin_dir').shellescape %>/vault
+CONFIG=<%= scope.lookupvar('vault::config_dir').shellescape %>
 PID_FILE=/var/run/vault/vault.pid
 LOG_FILE=/var/log/vault
 
 [ -e /etc/sysconfig/vault ] && . /etc/sysconfig/vault
 
-export GOMAXPROCS=${GOMAXPROCS:-2}
+export GOMAXPROCS="${GOMAXPROCS:-2}"
 
 #
 # Create the /var/run/vault directory, which can live on a tmpfs
@@ -34,38 +35,38 @@ mkrundir() {
 # Create a PID file if it doesn't already exist, for clean upgrades
 # from previous init-script controlled daemons.
 #
-KILLPROC_OPT="-p ${PID_FILE}"
+KILLPROC_OPT=(-p "${PID_FILE}")
 mkpidfile() {
         # Create PID file if it didn't exist
         mkrundir
-        [ ! -f $PID_FILE ] && pidofproc $VAULT > $PID_FILE
-        chown <%= scope.lookupvar('vault::user') %> /var/run/vault
+        [ ! -f "$PID_FILE" ] && pidofproc "$VAULT" > "$PID_FILE"
+        chown <%= scope.lookupvar('vault::user').shellescape %> /var/run/vault
         if [ $? -ne 0 ] ; then
-            rm $PID_FILE
-            KILLPROC_OPT=""
+            rm "$PID_FILE"
+            KILLPROC_OPT=()
         fi
 }
 
 start() {
         echo -n "Starting vault: "
         mkrundir
-        [ -f $PID_FILE ] && rm $PID_FILE
-        daemon --user=<%= scope.lookupvar('vault::user') %> \
+        [ -f "$PID_FILE" ] && rm "$PID_FILE"
+        daemon --user=<%= scope.lookupvar('vault::user').shellescape %> \
             --pidfile="$PID_FILE" \
-            "$VAULT" server -config "$CONFIG" <%= scope.lookupvar('vault::extra_options') %> >> "$LOG_FILE" &
+            "$VAULT" server -config "$CONFIG" <%= scope.lookupvar('vault::extra_options').shelljoin %> >> "$LOG_FILE" &
         retcode=$?
         touch /var/lock/subsys/vault
-        return $retcode
+        return "$retcode"
 }
 
 stop() {
         echo -n "Shutting down vault: "
         mkpidfile
-        killproc $KILLPROC_OPT $VAULT -9
+        killproc "${KILLPROC_OPT[@]}" "$VAULT" -9
 
         retcode=$?
-        rm -f /var/lock/subsys/vault $PID_FILE
-        return $retcode
+        rm -f /var/lock/subsys/vault "$PID_FILE"
+        return "$retcode"
 }
 
 case "$1" in
@@ -84,7 +85,7 @@ case "$1" in
         ;;
     reload)
         mkpidfile
-        killproc $KILLPROC_OPT $VAULT -HUP
+        killproc "${KILLPROC_OPT[@]}" "$VAULT" -HUP
         ;;
     condrestart)
         [ -f /var/lock/subsys/vault ] && restart || :

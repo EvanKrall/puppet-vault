@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 ### BEGIN INIT INFO
 # Provides:          vault
 # Required-Start:    $local_fs $remote_fs
@@ -15,17 +15,18 @@
 PATH=/usr/sbin:/usr/bin:/sbin:/bin:<%= scope.lookupvar('vault::bin_dir') %>
 DESC="Vault secrets management framework"
 NAME=vault
-DAEMON=<%= scope.lookupvar('vault::bin_dir') %>/$NAME
-PIDFILE=/var/run/$NAME/$NAME.pid
-DAEMON_ARGS="server -config <%= scope.lookupvar('vault::config_dir') %> <%= scope.lookupvar('vault::extra_options') %>"
-USER=<%= scope.lookupvar('vault::user') %>
-SCRIPTNAME=/etc/init.d/$NAME
+<% require 'shellwords' %>
+DAEMON=<%= scope.lookupvar('vault::bin_dir').shellescape %>/"$NAME"
+PIDFILE="/var/run/$NAME/$NAME.pid"
+DAEMON_ARGS=( server -config <%= scope.lookupvar('vault::config_dir').shellescape %> <%= scope.lookupvar('vault::extra_options').shelljoin %> )
+USER=<%= scope.lookupvar('vault::user').shellescape %>
+SCRIPTNAME="/etc/init.d/$NAME"
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
 
 # Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+[ -r "/etc/default/$NAME" ] && . "/etc/default/$NAME"
 
 # Load the VERBOSE setting and other rcS variables
 [ -f /etc/default/rcS ] && . /etc/default/rcS
@@ -39,7 +40,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 #
 mkrundir() {
         [ ! -d /var/run/vault ] && mkdir -p /var/run/vault
-        chown $USER /var/run/vault
+        chown "$USER" /var/run/vault
 }
 
 #
@@ -53,15 +54,15 @@ do_start()
     #   2 if daemon could not be started
     echo "Starting vault and backgrounding"
     mkrundir
-    start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --chuid $USER --background --make-pidfile --test > /dev/null \
+    start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --chuid "$USER" --background --make-pidfile --test > /dev/null \
         || return 1
-    start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --chuid $USER --background --make-pidfile -- \
-        $DAEMON_ARGS \
+    start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --chuid "$USER" --background --make-pidfile -- \
+        "${DAEMON_ARGS[@]}" \
         || return 2
 
     echo -n "Waiting for vault daemon to be listening..."
     for i in `seq 1 30`; do
-        if ! start-stop-daemon --quiet --stop --test --pidfile $PIDFILE --exec $DAEMON --user $USER; then
+        if ! start-stop-daemon --quiet --stop --test --pidfile "$PIDFILE" --exec "$DAEMON" --user "$USER"; then
             echo " FAIL: vault process died"
             return 2
         fi
@@ -86,7 +87,7 @@ do_stop()
     #   1 if daemon was already stopped
     #   2 if daemon could not be stopped
     #   other if a failure occurred
-    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile "$PIDFILE" --name "$NAME"
     RETVAL="$?"
     [ "$RETVAL" = 2 ] && return 2
     # Wait for children to finish too if this is a daemon that forks
@@ -95,10 +96,10 @@ do_stop()
     # that waits for the process to drop all resources that could be
     # needed by services started subsequently.  A last resort is to
     # sleep for some time.
-    start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $DAEMON
+    start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec "$DAEMON"
     [ "$?" = 2 ] && return 2
     # Many daemons don't delete their pidfiles when they exit.
-    rm -f $PIDFILE
+    rm -f "$PIDFILE"
     return "$RETVAL"
 }
 
@@ -111,7 +112,7 @@ do_reload() {
     # restarting (for example, when it is sent a SIGHUP),
     # then implement that here.
     #
-    start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
+    start-stop-daemon --stop --signal 1 --quiet --pidfile "$PIDFILE" --name "$NAME"
     return 0
 }
 
@@ -164,7 +165,7 @@ case "$1" in
     esac
     ;;
   status)
-      status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+      status_of_proc -p "$PIDFILE" "$DAEMON" "$NAME" && exit 0 || exit $?
       ;;
   *)
     #echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2

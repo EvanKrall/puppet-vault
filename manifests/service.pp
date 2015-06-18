@@ -1,7 +1,7 @@
 # == Class vault::service
 #
 # This class is meant to be called from vault
-# It ensure the service is running
+# It ensures the service is running
 #
 class vault::service {
   $init_selector = $vault::init_style ? {

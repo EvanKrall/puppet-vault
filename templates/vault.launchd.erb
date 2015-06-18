@@ -18,9 +18,8 @@
             <string>server</string>
             <string>-config</string>
             <string><%= scope.lookupvar('vault::config_dir') %></string>
-<% require 'shellwords' %>
-<% for extra_option in Shellwords.split(scope.lookupvar('vault::extra_options')) %>
-            <string><%= extra_option %></string>
+<% for extra_option in scope.lookupvar('vault::extra_options') -%>
+            <string><%= extra_option.encode(:xml => :text) %></string>
 <% end %>
         </array>
 </dict>

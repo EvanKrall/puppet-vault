@@ -20,15 +20,16 @@
 
 rc_reset
 
-VAULT_BIN=<%= scope.lookupvar('vault::bin_dir') %>/vault
-CONFIG_DIR=<%= scope.lookupvar('vault::config_dir') %>
+<% require 'shellwords' %>
+VAULT_BIN=<%= scope.lookupvar('vault::bin_dir').shellescape %>/vault
+CONFIG_DIR=<%= scope.lookupvar('vault::config_dir').shellescape %>
 LOG_FILE=/var/log/vault
 
 
 # read settings like GOMAXPROCS from "/etc/sysconfig/vault"
 [ -e /etc/sysconfig/vault ] && . /etc/sysconfig/vault
 
-export GOMAXPROCS=${GOMAXPROCS:-2}
+export GOMAXPROCS="${GOMAXPROCS:-2}"
 
 
 case "$1" in
@@ -36,7 +37,7 @@ case "$1" in
         echo -n "Starting vault "
         ## Start daemon with startproc(8). If this fails
         ## the return value is set appropriately by startproc.
-        startproc $VAULT_BIN server -config "$CONFIG_DIR" <%= scope.lookupvar('vault::extra_options') %> >> "$LOG_FILE"
+        startproc "$VAULT_BIN" server -config "$CONFIG_DIR" <%= scope.lookupvar('vault::extra_options').shelljoin %> >> "$LOG_FILE"
 
         # Remember status and be verbose
         rc_status -v
@@ -46,7 +47,7 @@ case "$1" in
         ## Stop daemon with killproc(8) and if this fails
         ## killproc sets the return value according to LSB.
 
-        killproc -TERM $VAULT_BIN
+        killproc -TERM "$VAULT_BIN"
 
         # Remember status and be verbose
         rc_status -v
@@ -54,8 +55,8 @@ case "$1" in
     restart)
         ## Stop the service and regardless of whether it was
         ## running or not, start it again.
-        $0 stop
-        $0 start
+        "$0" stop
+        "$0" start
 
         # Remember status and be quiet
         rc_status
@@ -63,7 +64,7 @@ case "$1" in
     reload)
         # If it supports signaling:
         echo -n "Reload service vault "
-        killproc -HUP $VAULT_BIN
+        killproc -HUP "$VAULT_BIN"
         #touch /var/run/vault.pid
         rc_status -v
 
@@ -85,7 +86,7 @@ case "$1" in
         # 5--199 reserved (5--99 LSB, 100--149 distro, 150--199 appl.)
 
         # NOTE: checkproc returns LSB compliant status values.
-        checkproc $VAULT_BIN
+        checkproc "$VAULT_BIN"
         # NOTE: rc_status knows that we called this init script with
         # "status" option and adapts its messages accordingly.
         rc_status -v
