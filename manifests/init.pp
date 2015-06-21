@@ -59,9 +59,9 @@ class vault (
   $extra_options     = [],
   $config_hash       = {},
   $config_defaults   = {},
-  $service_enable    = undef,
-  $service_ensure    = 'stopped',
-  $manage_service    = false,
+  $service_enable    = true,
+  $service_ensure    = 'running',
+  $manage_service    = true,
   $init_style        = $vault::params::init_style,
 ) inherits vault::params {
 
