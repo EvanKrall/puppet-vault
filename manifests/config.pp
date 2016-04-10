@@ -73,6 +73,7 @@ class vault::config(
           content => template('vault/vault.launchd.erb')
         }
       }
+      'unmanaged':{}
       default : {
         fail("I don't know how to create an init script for style ${vault::init_style}")
       }
