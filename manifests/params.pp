@@ -5,15 +5,17 @@
 #
 class vault::params {
 
-  $install_method    = 'url'
-  $package_name      = 'vault'
-  $package_ensure    = 'latest'
-  $version = '0.1.2'
+  $install_method        = 'url'
+  $package_name          = 'vault'
+  $package_ensure        = 'latest'
+  $version               = '0.1.2'
+  $download_url_base     = 'https://releases.hashicorp.com/consul/'
+  $download_extension    = 'zip'
 
   case $::architecture {
     'x86_64', 'amd64': { $arch = 'amd64' }
     'i386':            { $arch = '386'   }
-    'armv7l':          { $arch = 'arm' }
+    /^arm.*/:          { $arch = 'arm'   }
     default:           {
       fail("Unsupported kernel architecture: ${::architecture}")
     }
