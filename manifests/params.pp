@@ -8,7 +8,7 @@ class vault::params {
   $install_method        = 'url'
   $package_name          = 'vault'
   $package_ensure        = 'latest'
-  $version               = '0.1.2'
+  $version               = '0.5.2'
   $download_url_base     = 'https://releases.hashicorp.com/consul/'
   $download_extension    = 'zip'
 
