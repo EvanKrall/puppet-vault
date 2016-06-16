@@ -24,8 +24,10 @@ class vault::params {
   $os = downcase($::kernel)
 
   if $::operatingsystem == 'Ubuntu' {
-    if versioncmp($::lsbdistrelease, '8.04') < 1 {
+    if versioncmp($::lsbdistrelease, '8.04') < 0 {
       $init_style = 'debian'
+    } elsif versioncmp($::lsbdistrelease, '14.10') > 0 {
+      $init_style = 'systemd'
     } else {
       $init_style = 'upstart'
     }
@@ -42,7 +44,11 @@ class vault::params {
       $init_style = 'systemd'
     }
   } elsif $::operatingsystem == 'Debian' {
-    $init_style = 'debian'
+    if versioncmp($::operatingsystemrelease, '8') < 0 {
+      $init_style = 'debian'
+    } else {
+      $init_style = 'systemd'
+    }
   } elsif $::operatingsystem == 'SLES' {
     $init_style = 'sles'
   } elsif $::operatingsystem == 'Darwin' {
