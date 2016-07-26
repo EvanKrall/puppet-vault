@@ -9,6 +9,7 @@ class vault::params {
   $package_name          = 'vault'
   $package_ensure        = 'latest'
   $version               = '0.6.0'
+  $checksum              = '283b4f591da8a4bf92067bf9ff5b70249f20705cc963bea96ecaf032911f27c2'
   $download_url_base     = 'https://releases.hashicorp.com/vault/'
   $download_extension    = 'zip'
 

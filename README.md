@@ -4,7 +4,7 @@ Puppet module for managing Hashicorp's [Vault](https://vaultproject.io/)
 ##Prerequisites
 This module requires:
 
-- [puppet-staging](https://github.com/nanliu/puppet-staging)
+- [puppet-archive](https://github.com/nanliu/puppet-staging)
 - a `zip` package to be installed (eg `package { "zip": ensure => installed }`)
 
 ##Installation
