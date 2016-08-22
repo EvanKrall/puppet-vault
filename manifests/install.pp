@@ -18,10 +18,11 @@ class vault::install {
     if $::operatingsystem != 'darwin' {
       ensure_packages(['unzip'])
     }
-    staging::file { 'vault.zip':
-      source => $vault::real_download_url,
+    archive::file { 'vault.zip':
+      source   => $vault::real_download_url,
+      checksum => $vault::checksum,
     } ->
-    staging::extract { 'vault.zip':
+    archive::extract { 'vault.zip':
       target  => $vault::bin_dir,
       creates => "${vault::bin_dir}/vault",
     } ->
